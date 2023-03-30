@@ -3,6 +3,7 @@
     package="com.rjndrkha.dicoding.storyapp">
 
     <uses-permission android:name="android.permission.INTERNET" />
+
     <uses-feature android:name="android.hardware.camera" />
 
     <uses-permission android:name="android.permission.CAMERA" />
@@ -19,17 +20,20 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.StoryApp">
         <activity
-            android:name="com.rjndrkha.dicoding.storyapp.ui.create_story.CreateStoryActivity"
+            android:name=".Camerax"
             android:exported="false" />
         <activity
-            android:name="com.rjndrkha.dicoding.storyapp.ui.main.MainActivity"
+            android:name=".ui.create_story.CreateStoryActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.main.MainActivity"
             android:exported="false"
             android:label="@string/title_activity_main" />
         <activity
-            android:name="com.rjndrkha.dicoding.storyapp.ui.register.RegisterActivity"
+            android:name=".ui.register.RegisterActivity"
             android:exported="false" />
         <activity
-            android:name="com.rjndrkha.dicoding.storyapp.SplashScreenMain"
+            android:name=".SplashScreenMain"
             android:exported="true"
             android:theme="@style/SplashScreen">
             <intent-filter>
@@ -39,10 +43,10 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="com.rjndrkha.dicoding.storyapp.ui.login.LoginActivity"
+            android:name=".ui.login.LoginActivity"
             android:exported="false" />
         <activity
-            android:name="com.rjndrkha.dicoding.storyapp.ui.detail_story.DetailStoryActivity"
+            android:name=".ui.detail_story.DetailStoryActivity"
             android:exported="false" />
 
         <provider

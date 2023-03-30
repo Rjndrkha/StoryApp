@@ -1,6 +1,7 @@
 package com.rjndrkha.dicoding.storyapp.ui.create_story
 
 import android.app.Application
+import android.graphics.BitmapFactory
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -8,6 +9,7 @@ import com.rjndrkha.dicoding.storyapp.networking.ApiConfig
 import com.rjndrkha.dicoding.storyapp.model.CreateStoryResponse
 import com.rjndrkha.dicoding.storyapp.preference.LoginPreference
 import com.rjndrkha.dicoding.storyapp.utils.reduceFileImage
+import com.rjndrkha.dicoding.storyapp.utils.rotateBitmap
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import retrofit2.Callback
@@ -27,10 +29,10 @@ class CreateStoryViewModel(application: Application): AndroidViewModel(applicati
     private val _isError = MutableLiveData<Boolean>()
     val isError: LiveData<Boolean> = _isError
 
-    fun postCreateStory(imageFile: File, desc: String) {
+    fun postCreateStory(getFile: File, desc: String) {
         _isLoading.value = true
 
-        val file = reduceFileImage(imageFile as File)
+       val file = reduceFileImage(getFile as File)
 
         val description = desc.toRequestBody("text/plain".toMediaType())
         val requestImageFile = file.asRequestBody("image/jpeg".toMediaTypeOrNull())

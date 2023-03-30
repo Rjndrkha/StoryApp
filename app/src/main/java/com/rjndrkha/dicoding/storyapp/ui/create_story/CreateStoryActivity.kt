@@ -1,5 +1,6 @@
 package com.rjndrkha.dicoding.storyapp.ui.create_story
 
+import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
@@ -16,19 +17,29 @@ import androidx.activity.viewModels
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import com.rjndrkha.dicoding.storyapp.Camerax
 import com.rjndrkha.dicoding.storyapp.R
 import com.rjndrkha.dicoding.storyapp.custom_view.Constants
 import com.rjndrkha.dicoding.storyapp.custom_view.CustomAlertDialog
 import com.rjndrkha.dicoding.storyapp.databinding.ActivityCreateStoryBinding
 import com.rjndrkha.dicoding.storyapp.utils.createCustomTempFile
+import com.rjndrkha.dicoding.storyapp.utils.rotateBitmap
 import com.rjndrkha.dicoding.storyapp.utils.uriToFile
 import java.io.File
+
 
 class CreateStoryActivity : AppCompatActivity() {
     private lateinit var binding: ActivityCreateStoryBinding
     private lateinit var currentPhotoPath: String
     private var getFile: File? = null
     private val createStoryViewModel: CreateStoryViewModel by viewModels()
+
+    companion object {
+        const val CAMERA_X_RESULT = 200
+
+        private val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.CAMERA)
+        private const val REQUEST_CODE_PERMISSIONS = 10
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,6 +59,7 @@ class CreateStoryActivity : AppCompatActivity() {
         createStoryViewModel.isError.observe(this@CreateStoryActivity) {
             errorHandler(it)
         }
+
     }
 
     private fun setupToolbar() {
@@ -98,35 +110,63 @@ class CreateStoryActivity : AppCompatActivity() {
         }
     }
 
+    private fun buttonCameraHandler() {
+        val intent = Intent(this, Camerax::class.java)
+        launcherIntentCamera.launch(intent)
+    }
+
     private val launcherIntentCamera = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) {
-        if (it.resultCode == RESULT_OK) {
-            val myFile = File(currentPhotoPath)
+        if (it.resultCode == CAMERA_X_RESULT) {
+            val myFile = it.data?.getSerializableExtra("picture") as File
+            val isBackCamera = it.data?.getBooleanExtra("isBackCamera", true) as Boolean
+
             getFile = myFile
-            val result = BitmapFactory.decodeFile(myFile.path)
+            val result = rotateBitmap(
+                BitmapFactory.decodeFile(getFile?.path),
+                isBackCamera
+            )
 
             binding.createStoryLayout.imagePickerView.setImageBitmap(result)
         }
     }
 
-    private fun buttonCameraHandler() {
-        binding.createStoryLayout.cameraButton.setOnClickListener {
-            val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-            intent.resolveActivity(packageManager)
 
-            createCustomTempFile(applicationContext).also {
-                val photoURI: Uri = FileProvider.getUriForFile(
-                    this@CreateStoryActivity,
-                    "com.rjndrkha.dicoding.storyapp.mycamera",
-                    it
-                )
-                currentPhotoPath = it.absolutePath
-                intent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
-                launcherIntentCamera.launch(intent)
-            }
-        }
-    }
+//    private val launcherIntentCamera = registerForActivityResult(
+//        ActivityResultContracts.StartActivityForResult()
+//    ) {
+//        if (it.resultCode == RESULT_OK) {
+//            val myFile = File(currentPhotoPath)
+//
+//
+//            getFile = myFile
+//
+
+//
+//            BitmapFactory.decodeFile(myFile.path)
+//
+//            binding.createStoryLayout.imagePickerView.setImageBitmap(result)
+//        }
+//    }
+
+//    private fun buttonCameraHandler() {
+//        binding.createStoryLayout.cameraButton.setOnClickListener {
+//            val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+//            intent.resolveActivity(packageManager)
+//
+//            createCustomTempFile(applicationContext).also {
+//                val photoURI: Uri = FileProvider.getUriForFile(
+//                    this@CreateStoryActivity,
+//                    "com.rjndrkha.dicoding.storyapp.mycamera",
+//                    it
+//                )
+//                currentPhotoPath = it.absolutePath
+//                intent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
+//                launcherIntentCamera.launch(intent)
+//            }
+//        }
+//    }
 
     private val launcherIntentGallery = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -134,6 +174,7 @@ class CreateStoryActivity : AppCompatActivity() {
         if (result.resultCode == RESULT_OK) {
             val selectedImg: Uri = result.data?.data as Uri
             val myFile = uriToFile(selectedImg, this@CreateStoryActivity)
+
             getFile = myFile
             binding.createStoryLayout.imagePickerView.setImageURI(selectedImg)
         }
