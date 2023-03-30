@@ -107,11 +107,15 @@ fun reduceFileImage(file: File): File {
         compressQuality -= 5
     } while (streamLength > Constants.STREAM_LENGTH)
 
-    if (CreateStoryActivity.CAMERA_X_RESULT == 200){
-        rotateBitmap(bitmap,true).compress(Bitmap.CompressFormat.JPEG, compressQuality, FileOutputStream(file))
-    }else if (CreateStoryActivity.CAMERA_X_RESULT != 200){
-        rotateBitmap(bitmap,false).compress(Bitmap.CompressFormat.JPEG, compressQuality, FileOutputStream(file))
-    }else  {
+    if (CreateStoryActivity.CAMERA_X_RESULT == 200) {
+        rotateBitmap(bitmap, true).compress(
+            Bitmap.CompressFormat.JPEG,
+            compressQuality,
+            FileOutputStream(file)
+        )
+//    }else if (CreateStoryActivity.CAMERA_X_RESULT != 200){
+//        rotateBitmap(bitmap,false).compress(Bitmap.CompressFormat.JPEG, compressQuality, FileOutputStream(file))
+    } else {
         bitmap.compress(Bitmap.CompressFormat.JPEG, compressQuality, FileOutputStream(file))
     }
 

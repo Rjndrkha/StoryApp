@@ -110,10 +110,10 @@ class CreateStoryActivity : AppCompatActivity() {
         }
     }
 
-    private fun buttonCameraHandler() {
-        val intent = Intent(this, Camerax::class.java)
-        launcherIntentCamera.launch(intent)
-    }
+//    private fun buttonCameraHandler() {
+//        val intent = Intent(this, Camerax::class.java)
+//        launcherIntentCamera.launch(intent)
+//    }
 
     private val launcherIntentCamera = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -150,11 +150,11 @@ class CreateStoryActivity : AppCompatActivity() {
 //        }
 //    }
 
-//    private fun buttonCameraHandler() {
-//        binding.createStoryLayout.cameraButton.setOnClickListener {
+    private fun buttonCameraHandler() {
+        binding.createStoryLayout.cameraButton.setOnClickListener {
 //            val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
 //            intent.resolveActivity(packageManager)
-//
+
 //            createCustomTempFile(applicationContext).also {
 //                val photoURI: Uri = FileProvider.getUriForFile(
 //                    this@CreateStoryActivity,
@@ -165,8 +165,10 @@ class CreateStoryActivity : AppCompatActivity() {
 //                intent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
 //                launcherIntentCamera.launch(intent)
 //            }
-//        }
-//    }
+            val intent = Intent(this, Camerax::class.java)
+            launcherIntentCamera.launch(intent)
+        }
+    }
 
     private val launcherIntentGallery = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
