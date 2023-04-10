@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/white"
-    tools:context="com.rjndrkha.dicoding.storyapp.SplashScreenMain">
+    tools:context="com.rjndrkha.dicoding.storyapp.ui.splash_screen.SplashScreenActivity">
 
     <TextView
         android:id="@+id/app_name"

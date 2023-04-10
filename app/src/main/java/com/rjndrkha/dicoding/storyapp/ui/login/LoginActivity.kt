@@ -3,33 +3,37 @@ package com.rjndrkha.dicoding.storyapp.ui.login
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextUtils.isEmpty
 import android.text.TextWatcher
 import android.view.View
 import androidx.activity.viewModels
-import com.rjndrkha.dicoding.storyapp.ui.main.MainActivity
+import androidx.appcompat.app.AppCompatActivity
 import com.rjndrkha.dicoding.storyapp.R
 import com.rjndrkha.dicoding.storyapp.custom_view.CustomAlertDialog
-import com.rjndrkha.dicoding.storyapp.ui.register.RegisterActivity
+import com.rjndrkha.dicoding.storyapp.data_page.Result
 import com.rjndrkha.dicoding.storyapp.databinding.ActivityLoginBinding
 import com.rjndrkha.dicoding.storyapp.model.LoginModel
 import com.rjndrkha.dicoding.storyapp.model.LoginResponse
+import com.rjndrkha.dicoding.storyapp.model.view_model.ViewModelFactory
 import com.rjndrkha.dicoding.storyapp.preference.LoginPreference
+import com.rjndrkha.dicoding.storyapp.ui.main.MainActivity
+import com.rjndrkha.dicoding.storyapp.ui.register.RegisterActivity
 import com.rjndrkha.dicoding.storyapp.utils.isValidEmail
 import com.rjndrkha.dicoding.storyapp.utils.validateMinLength
 
 class LoginActivity : AppCompatActivity() {
     private lateinit var binding: ActivityLoginBinding
-    private val loginViewModel by viewModels<LoginViewModel>()
+    private lateinit var factory: ViewModelFactory
+    private val loginViewModel: LoginViewModel by viewModels { factory }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        setupViewModel()
         playAnimation()
         hideActionBar()
         registerButtonHandler()
@@ -37,18 +41,10 @@ class LoginActivity : AppCompatActivity() {
         setMyButtonEnable()
         emailEditTextHandler()
         passwordEditTextHandler()
+    }
 
-        loginViewModel.isLoading.observe(this@LoginActivity) {
-            showLoading(it)
-        }
-
-        loginViewModel.loginResponse.observe(this@LoginActivity) {
-            loginHandler(it)
-        }
-
-        loginViewModel.isError.observe(this@LoginActivity) {
-            errorHandler(it)
-        }
+    private fun setupViewModel() {
+        factory = ViewModelFactory.getInstance(binding.root.context)
     }
 
     private fun hideActionBar() {
@@ -68,14 +64,33 @@ class LoginActivity : AppCompatActivity() {
             val password = binding.loginLayout.passwordEditText.text.toString()
 
             if (!isEmpty(email) && !isEmpty(password)) {
-                loginViewModel.postLogin(email, password)
+                handlingLogin(email, password)
             } else {
                 CustomAlertDialog(this, R.string.error_validation, R.drawable.error_form).show()
             }
         }
     }
 
-    private fun showLoading(isLoading: Boolean) {
+    private fun handlingLogin(email: String, password: String) {
+        loginViewModel.postLogin(email, password).observe(this@LoginActivity) { result ->
+            if (result != null) {
+                when(result) {
+                    is Result.Loading -> {
+                        loadingHandler(true)
+                    }
+                    is Result.Error -> {
+                        loadingHandler(false)
+                        errorHandler()
+                    }
+                    is Result.Success -> {
+                        successLoginHandler(result.data)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun loadingHandler(isLoading: Boolean) {
         if (isLoading) {
             binding.loadingLayout.root.visibility = View.VISIBLE
             binding.loginLayout.root.visibility = View.GONE
@@ -85,24 +100,20 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
-    private fun loginHandler(loginResponse: LoginResponse) {
-        if (!loginResponse.error) {
-            saveLoginData(loginResponse)
-            navigateToHome()
-        }
+    private fun successLoginHandler(loginResponse: LoginResponse) {
+        saveLoginData(loginResponse)
+        navigateToHome()
     }
 
-    private fun errorHandler(isError: Boolean) {
-        if (isError) {
-            CustomAlertDialog(this, R.string.error_message, R.drawable.error).show()
-        }
+    private fun errorHandler() {
+        CustomAlertDialog(this, R.string.error_message, R.drawable.error).show()
     }
 
     private fun saveLoginData(loginResponse: LoginResponse) {
         val loginPreference = LoginPreference(this)
         val loginResult = loginResponse.loginResult
         val loginModel = LoginModel(
-            name = loginResult.name, userId = loginResult.userId, token = loginResult.token
+            name = loginResult?.name, userId = loginResult?.userId, token = loginResult?.token
         )
 
         loginPreference.setLogin(loginModel)

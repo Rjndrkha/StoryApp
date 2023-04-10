@@ -2,7 +2,7 @@ package com.rjndrkha.dicoding.storyapp.ui.register
 
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
-import androidx.appcompat.app.AppCompatActivity
+import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextUtils
@@ -10,21 +10,28 @@ import android.text.TextWatcher
 import android.view.MenuItem
 import android.view.View
 import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
 import com.rjndrkha.dicoding.storyapp.R
 import com.rjndrkha.dicoding.storyapp.custom_view.CustomAlertDialog
+import com.rjndrkha.dicoding.storyapp.data_page.Result
 import com.rjndrkha.dicoding.storyapp.databinding.ActivityRegisterBinding
+import com.rjndrkha.dicoding.storyapp.model.view_model.ViewModelFactory
+import com.rjndrkha.dicoding.storyapp.ui.login.LoginActivity
+import com.rjndrkha.dicoding.storyapp.ui.main.MainActivity
 import com.rjndrkha.dicoding.storyapp.utils.isValidEmail
 import com.rjndrkha.dicoding.storyapp.utils.validateMinLength
 
 class RegisterActivity : AppCompatActivity() {
     private lateinit var binding: ActivityRegisterBinding
-    private val registerViewModel by viewModels<RegisterViewModel>()
+    private lateinit var factory: ViewModelFactory
+    private val registerViewModel: RegisterViewModel by viewModels { factory }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityRegisterBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        setupViewModel()
         playAnimation()
         setupToolbar()
         backButtonHandler()
@@ -34,18 +41,10 @@ class RegisterActivity : AppCompatActivity() {
         nameEditTextHandler()
         passwordEditTextHandler()
         confirmationPasswordEditTextHandler()
+    }
 
-        registerViewModel.isLoading.observe(this@RegisterActivity) {
-            showLoading(it)
-        }
-
-        registerViewModel.isSuccess.observe(this@RegisterActivity) {
-            registerHandler(it)
-        }
-
-        registerViewModel.isError.observe(this@RegisterActivity) {
-            errorHandler(it)
-        }
+    private fun setupViewModel() {
+        factory = ViewModelFactory.getInstance(binding.root.context)
     }
 
     private fun setupToolbar() {
@@ -64,7 +63,7 @@ class RegisterActivity : AppCompatActivity() {
         }
     }
 
-    private fun showLoading(isLoading: Boolean) {
+    private fun loadingHandler(isLoading: Boolean) {
         if (isLoading) {
             binding.loadingLayout.root.visibility = View.VISIBLE
             binding.registerLayout.root.visibility = View.GONE
@@ -74,20 +73,25 @@ class RegisterActivity : AppCompatActivity() {
         }
     }
 
-    private fun errorHandler(isError: Boolean) {
-        if (isError) {
-            CustomAlertDialog(this, R.string.error_message, R.drawable.error).show()
-        }
+    private fun errorHandler() {
+        CustomAlertDialog(this, R.string.error_message, R.drawable.error).show()
     }
 
-    private fun registerHandler(isSuccess: Boolean) {
-        if (isSuccess) {
-            CustomAlertDialog(this, R.string.success_create_user, R.drawable.user_created).show()
-            binding.registerLayout.emailEditText.text?.clear()
-            binding.registerLayout.passwordEditText.text?.clear()
-            binding.registerLayout.nameEditText.text?.clear()
-            binding.registerLayout.confirmPasswordEditText.text?.clear()
+    private fun registerHandler() {
+        CustomAlertDialog(this,
+            R.string.success_create_user,
+            R.drawable.user_created,
+        fun() {
+            val moveActivity = Intent(this@RegisterActivity, LoginActivity::class.java)
+            moveActivity.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
+            startActivity(moveActivity)
+            finish()
         }
+        ).show()
+        binding.registerLayout.emailEditText.text?.clear()
+        binding.registerLayout.passwordEditText.text?.clear()
+        binding.registerLayout.nameEditText.text?.clear()
+        binding.registerLayout.confirmPasswordEditText.text?.clear()
     }
 
     private fun registerButtonHandler() {
@@ -97,9 +101,29 @@ class RegisterActivity : AppCompatActivity() {
             val name = binding.registerLayout.nameEditText.text.toString()
 
             if (!TextUtils.isEmpty(email) && !TextUtils.isEmpty(password) && !TextUtils.isEmpty(name)) {
-                registerViewModel.postRegister(name, email, password)
+                handlingRegister(name, email, password)
             } else {
                 CustomAlertDialog(this, R.string.error_validation, R.drawable.error_form).show()
+            }
+        }
+    }
+
+    private fun handlingRegister(name: String, email: String, password: String) {
+        registerViewModel.postRegister(name, email, password).observe(this@RegisterActivity) { result ->
+            if (result != null) {
+                when(result) {
+                    is Result.Loading -> {
+                        loadingHandler(true)
+                    }
+                    is Result.Error -> {
+                        loadingHandler(false)
+                        errorHandler()
+                    }
+                    is Result.Success -> {
+                        loadingHandler(false)
+                        registerHandler()
+                    }
+                }
             }
         }
     }
@@ -147,7 +171,6 @@ class RegisterActivity : AppCompatActivity() {
         val confirmationEditText = binding.registerLayout.confirmPasswordEditText.text
         binding.registerLayout.registerButton.isEnabled =
             isValidEmail(emailEditText.toString()) && validateMinLength(nameEditText.toString()) && validateMinLength(passwordEditText.toString()) && confirmationEditText.toString() == passwordEditText.toString()
-
     }
 
     private fun emailEditTextHandler() {

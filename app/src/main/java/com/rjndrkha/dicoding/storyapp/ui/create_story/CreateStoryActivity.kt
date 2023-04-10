@@ -4,35 +4,45 @@ import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
+import android.location.Location
 import android.net.Uri
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.provider.MediaStore
 import android.text.TextUtils.isEmpty
 import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.core.app.ActivityCompat
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import androidx.core.content.FileProvider
-import com.rjndrkha.dicoding.storyapp.Camerax
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 import com.rjndrkha.dicoding.storyapp.R
-import com.rjndrkha.dicoding.storyapp.custom_view.Constants
 import com.rjndrkha.dicoding.storyapp.custom_view.CustomAlertDialog
+import com.rjndrkha.dicoding.storyapp.data_page.Result
 import com.rjndrkha.dicoding.storyapp.databinding.ActivityCreateStoryBinding
-import com.rjndrkha.dicoding.storyapp.utils.createCustomTempFile
+import com.rjndrkha.dicoding.storyapp.model.view_model.ViewModelFactory
+import com.rjndrkha.dicoding.storyapp.ui.main.MainActivity
+import com.rjndrkha.dicoding.storyapp.utils.reduceFileImage
 import com.rjndrkha.dicoding.storyapp.utils.rotateBitmap
 import com.rjndrkha.dicoding.storyapp.utils.uriToFile
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
-
 
 class CreateStoryActivity : AppCompatActivity() {
     private lateinit var binding: ActivityCreateStoryBinding
     private lateinit var currentPhotoPath: String
     private var getFile: File? = null
-    private val createStoryViewModel: CreateStoryViewModel by viewModels()
+    private lateinit var factory: ViewModelFactory
+    private val createStoryViewModel: CreateStoryViewModel by viewModels { factory }
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private var latitude: Double? = null
+    private var longitude: Double? = null
 
     companion object {
         const val CAMERA_X_RESULT = 200
@@ -46,20 +56,18 @@ class CreateStoryActivity : AppCompatActivity() {
         binding = ActivityCreateStoryBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+
+        setupViewModel()
         setupToolbar()
-        checkPermission()
+        getMyLastLocation()
         buttonGalleryHandler()
         buttonCameraHandler()
         buttonSubmitStoryHandler()
+    }
 
-        createStoryViewModel.isLoading.observe(this@CreateStoryActivity) {
-            showLoading(it)
-        }
-
-        createStoryViewModel.isError.observe(this@CreateStoryActivity) {
-            errorHandler(it)
-        }
-
+    private fun setupViewModel() {
+        factory = ViewModelFactory.getInstance(binding.root.context)
     }
 
     private fun setupToolbar() {
@@ -72,30 +80,59 @@ class CreateStoryActivity : AppCompatActivity() {
         return true
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == Constants.REQUEST_CODE_PERMISSIONS) {
-            if (!allPermissionGranted()) {
-                Toast.makeText(this@CreateStoryActivity, R.string.permission_denied, Toast.LENGTH_SHORT).show()
-                finish()
+    private val requestPermissionLauncher =
+        registerForActivityResult(
+            ActivityResultContracts.RequestMultiplePermissions()
+        ) { permissions ->
+            when {
+                permissions[Manifest.permission.ACCESS_FINE_LOCATION] ?: false -> {
+                    getMyLastLocation()
+                }
+                permissions[Manifest.permission.ACCESS_COARSE_LOCATION] ?: false -> {
+                    getMyLastLocation()
+                }
+                permissions[Manifest.permission.CAMERA] ?: false -> {}
+                permissions[Manifest.permission.READ_EXTERNAL_STORAGE] ?: false -> {}
+                else -> {
+                    Toast.makeText(this@CreateStoryActivity, R.string.permission_denied, Toast.LENGTH_SHORT).show()
+                    finish()
+                }
             }
         }
+
+    private fun checkPermission(permission: String): Boolean {
+        return ContextCompat.checkSelfPermission(
+            this,
+            permission
+        ) == PackageManager.PERMISSION_GRANTED
     }
 
-    private fun allPermissionGranted() = Constants.REQUIRED_PERMISSIONS.all {
-        ContextCompat.checkSelfPermission(baseContext, it) == PackageManager.PERMISSION_GRANTED
-    }
-
-    private fun checkPermission() {
-        if (!allPermissionGranted()) {
-            ActivityCompat.requestPermissions(
-                this@CreateStoryActivity,
-                Constants.REQUIRED_PERMISSIONS,
-                Constants.REQUEST_CODE_PERMISSIONS
+    private fun getMyLastLocation() {
+        if (checkPermission(Manifest.permission.ACCESS_FINE_LOCATION) &&
+            checkPermission(Manifest.permission.ACCESS_COARSE_LOCATION) &&
+            checkPermission(Manifest.permission.CAMERA) &&
+            checkPermission(Manifest.permission.READ_EXTERNAL_STORAGE)
+        ) {
+            fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
+                if (location != null) {
+                    latitude = location.latitude
+                    longitude = location.longitude
+                } else {
+                    Toast.makeText(
+                        this@CreateStoryActivity,
+                        getString(R.string.location_not_found),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        } else {
+            requestPermissionLauncher.launch(
+                arrayOf(
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION,
+                    Manifest.permission.READ_EXTERNAL_STORAGE,
+                    Manifest.permission.CAMERA
+                )
             )
         }
     }
@@ -109,11 +146,6 @@ class CreateStoryActivity : AppCompatActivity() {
             launcherIntentGallery.launch(chooser)
         }
     }
-
-//    private fun buttonCameraHandler() {
-//        val intent = Intent(this, Camerax::class.java)
-//        launcherIntentCamera.launch(intent)
-//    }
 
     private val launcherIntentCamera = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -132,39 +164,8 @@ class CreateStoryActivity : AppCompatActivity() {
         }
     }
 
-
-//    private val launcherIntentCamera = registerForActivityResult(
-//        ActivityResultContracts.StartActivityForResult()
-//    ) {
-//        if (it.resultCode == RESULT_OK) {
-//            val myFile = File(currentPhotoPath)
-//
-//
-//            getFile = myFile
-//
-
-//
-//            BitmapFactory.decodeFile(myFile.path)
-//
-//            binding.createStoryLayout.imagePickerView.setImageBitmap(result)
-//        }
-//    }
-
     private fun buttonCameraHandler() {
         binding.createStoryLayout.cameraButton.setOnClickListener {
-//            val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-//            intent.resolveActivity(packageManager)
-
-//            createCustomTempFile(applicationContext).also {
-//                val photoURI: Uri = FileProvider.getUriForFile(
-//                    this@CreateStoryActivity,
-//                    "com.rjndrkha.dicoding.storyapp.mycamera",
-//                    it
-//                )
-//                currentPhotoPath = it.absolutePath
-//                intent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
-//                launcherIntentCamera.launch(intent)
-//            }
             val intent = Intent(this, Camerax::class.java)
             launcherIntentCamera.launch(intent)
         }
@@ -176,7 +177,6 @@ class CreateStoryActivity : AppCompatActivity() {
         if (result.resultCode == RESULT_OK) {
             val selectedImg: Uri = result.data?.data as Uri
             val myFile = uriToFile(selectedImg, this@CreateStoryActivity)
-
             getFile = myFile
             binding.createStoryLayout.imagePickerView.setImageURI(selectedImg)
         }
@@ -185,15 +185,60 @@ class CreateStoryActivity : AppCompatActivity() {
     private fun buttonSubmitStoryHandler() {
         binding.createStoryLayout.submitStoryButton.setOnClickListener {
             val description = binding.createStoryLayout.descriptionEditText.text.toString()
-            if (!isEmpty(description) && getFile != null) {
-                createStoryViewModel.postCreateStory(getFile!!, description)
+            if (!isEmpty(description) && getFile != null && latitude != null && longitude != null) {
+                createStory(description)
             } else {
-                CustomAlertDialog(this, R.string.error_validation, R.drawable.error_form).show()
+                CustomAlertDialog(
+                    this,
+                    R.string.error_validation,
+                    R.drawable.error_form
+                ).show()
             }
         }
     }
 
-    private fun showLoading(isLoading: Boolean) {
+    private fun convertImage(): MultipartBody.Part {
+        val file = reduceFileImage(getFile as File)
+        val requestImageFile = file.asRequestBody("image/jpeg".toMediaTypeOrNull())
+
+        return MultipartBody.Part.createFormData(
+            "photo",
+            file.name,
+            requestImageFile
+        )
+    }
+
+    private fun convertDescription(description: String): RequestBody {
+        return description.toRequestBody("text/plain".toMediaType())
+    }
+
+    private fun createStory(description: String) {
+        val image = convertImage()
+        val desc = convertDescription(description)
+        createStoryViewModel.postCreateStory(
+            image,
+            desc,
+            latitude!!,
+            longitude!!
+        ).observe(this@CreateStoryActivity) { result ->
+            if (result != null) {
+                when(result) {
+                    is Result.Loading -> {
+                        loadingHandler(true)
+                    }
+                    is Result.Error -> {
+                        loadingHandler(false)
+                        errorHandler()
+                    }
+                    is Result.Success -> {
+                        successHandler()
+                    }
+                }
+            }
+        }
+    }
+
+    private fun loadingHandler(isLoading: Boolean) {
         if (isLoading) {
             binding.loadingLayout.root.visibility = View.VISIBLE
             binding.createStoryLayout.root.visibility = View.GONE
@@ -203,13 +248,23 @@ class CreateStoryActivity : AppCompatActivity() {
         }
     }
 
-    private fun errorHandler(isError: Boolean) {
-        if (isError) {
-            CustomAlertDialog(this, R.string.error_message, R.drawable.error).show()
-        } else {
-            CustomAlertDialog(this, R.string.success_create_story, R.drawable.story_created).show()
-            binding.createStoryLayout.imagePickerView.setImageResource(R.drawable.image_picker)
-            binding.createStoryLayout.descriptionEditText.text?.clear()
-        }
+    private fun errorHandler() {
+        CustomAlertDialog(this, R.string.error_message, R.drawable.error).show()
+    }
+
+    private fun successHandler() {
+        CustomAlertDialog(
+            this,
+            R.string.success_create_story,
+            R.drawable.story_created,
+            fun() {
+                val moveActivity = Intent(this@CreateStoryActivity, MainActivity::class.java)
+                moveActivity.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
+                startActivity(moveActivity)
+                finish()
+            }
+        ).show()
+        binding.createStoryLayout.imagePickerView.setImageResource(R.drawable.image_picker)
+        binding.createStoryLayout.descriptionEditText.text?.clear()
     }
 }

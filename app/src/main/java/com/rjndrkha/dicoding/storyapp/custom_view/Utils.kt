@@ -11,11 +11,11 @@ import android.os.Environment
 import android.text.TextUtils
 import android.util.Patterns
 import com.rjndrkha.dicoding.storyapp.R
-import java.util.*
 import com.rjndrkha.dicoding.storyapp.custom_view.Constants
 import com.rjndrkha.dicoding.storyapp.ui.create_story.CreateStoryActivity
 import java.io.*
 import java.text.SimpleDateFormat
+import java.util.*
 
 private const val FILENAME_FORMAT = "dd-MMM-yyyy"
 
@@ -113,8 +113,6 @@ fun reduceFileImage(file: File): File {
             compressQuality,
             FileOutputStream(file)
         )
-//    }else if (CreateStoryActivity.CAMERA_X_RESULT != 200){
-//        rotateBitmap(bitmap,false).compress(Bitmap.CompressFormat.JPEG, compressQuality, FileOutputStream(file))
     } else {
         bitmap.compress(Bitmap.CompressFormat.JPEG, compressQuality, FileOutputStream(file))
     }

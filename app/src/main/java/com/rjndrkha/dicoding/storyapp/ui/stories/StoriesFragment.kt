@@ -1,32 +1,29 @@
 package com.rjndrkha.dicoding.storyapp.ui.stories
 
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
-import com.rjndrkha.dicoding.storyapp.R
-import com.rjndrkha.dicoding.storyapp.custom_view.CustomAlertDialog
-import com.rjndrkha.dicoding.storyapp.model.Story
-import android.content.res.Configuration
-import androidx.core.app.ActivityOptionsCompat
+import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.rjndrkha.dicoding.storyapp.adapter.ListStoriesAdapter
-import com.rjndrkha.dicoding.storyapp.custom_view.Constants
+import com.rjndrkha.dicoding.storyapp.adapter.LoadingStateAdapter
 import com.rjndrkha.dicoding.storyapp.databinding.FragmentStoriesBinding
+import com.rjndrkha.dicoding.storyapp.model.view_model.ViewModelFactory
 import com.rjndrkha.dicoding.storyapp.ui.create_story.CreateStoryActivity
-import com.rjndrkha.dicoding.storyapp.ui.detail_story.DetailStoryActivity
 
 class StoriesFragment : Fragment() {
 
     private var _binding: FragmentStoriesBinding? = null
     private val binding get() = _binding!!
-    private val homeViewModel: StoriesViewModel by activityViewModels()
+    private lateinit var listStoriesAdapter: ListStoriesAdapter
+    private lateinit var factory: ViewModelFactory
+    private val homeViewModel: StoriesViewModel by viewModels { factory }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -36,50 +33,19 @@ class StoriesFragment : Fragment() {
         _binding = FragmentStoriesBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
-        homeViewModel.listStories.observe(viewLifecycleOwner) {
-            val isEmptyUser = it.isEmpty()
-            if (isEmptyUser) {
-                handlingEmptyUser(isEmptyUser)
-            } else {
-                showListStories(root.context, it)
-            }
-        }
-
-        homeViewModel.isLoading.observe(viewLifecycleOwner) {
-            shodLoading(it)
-        }
-
-        homeViewModel.isError.observe(viewLifecycleOwner) {
-            errorHandler(root.context, it)
-        }
-
+        setupViewModel()
+        setupView(root.context)
+        getStories()
         createStoryButtonHandler()
 
         return root
     }
 
-    override fun onResume() {
-        super.onResume()
-        homeViewModel.getStories()
+    private fun setupViewModel() {
+        factory = ViewModelFactory.getInstance(binding.root.context)
     }
 
-    private fun shodLoading(isLoading: Boolean) {
-        if (isLoading) {
-            binding.progressBar.visibility = View.VISIBLE
-            binding.storiesRv.visibility = View.GONE
-        } else {
-            binding.progressBar.visibility = View.GONE
-            binding.storiesRv.visibility = View.VISIBLE
-        }
-    }
-
-    private fun errorHandler(context: Context, isError: Boolean) {
-        if (isError) {
-            CustomAlertDialog(context, R.string.error_message, R.drawable.error).show()
-        }
-    }
-
-    private fun showListStories(context: Context, stories: List<Story>) {
+    private fun setupView(context: Context) {
         val storiesRv = binding.storiesRv
 
         if (context.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
@@ -88,30 +54,19 @@ class StoriesFragment : Fragment() {
             storiesRv.layoutManager = LinearLayoutManager(context)
         }
 
-        val listStoriesAdapter = ListStoriesAdapter(stories)
+        listStoriesAdapter = ListStoriesAdapter()
         storiesRv.adapter = listStoriesAdapter
+    }
 
-        listStoriesAdapter.setOnItemClickCallback(object : ListStoriesAdapter.OnItemClickCallback {
-            override fun onItemClicked(data: Story) {
-                navigateDetailStory(data)
+    private fun getStories() {
+        binding.storiesRv.adapter = listStoriesAdapter.withLoadStateFooter(
+            footer = LoadingStateAdapter {
+                listStoriesAdapter.retry()
             }
-        })
-    }
-
-    private fun navigateDetailStory(story: Story) {
-        val intent = Intent(binding.root.context, DetailStoryActivity::class.java)
-        intent.putExtra(Constants.DETAIL_STORY, story)
-        startActivity(
-            intent,
-            ActivityOptionsCompat.makeSceneTransitionAnimation(binding.root.context as Activity).toBundle()
         )
-    }
 
-    private fun handlingEmptyUser(isEmptyUser: Boolean) {
-        if (isEmptyUser) {
-            binding.emptyStories.emptyStoriesConstraintLayout.visibility = View.VISIBLE
-        } else {
-            binding.emptyStories.emptyStoriesConstraintLayout.visibility - View.GONE
+        homeViewModel.getListStory.observe(viewLifecycleOwner) {
+            listStoriesAdapter.submitData(lifecycle, it)
         }
     }
 

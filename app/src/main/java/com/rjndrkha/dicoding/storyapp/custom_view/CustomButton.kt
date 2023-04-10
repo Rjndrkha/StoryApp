@@ -5,8 +5,8 @@ import android.graphics.Canvas
 import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import androidx.core.content.ContextCompat
-import com.rjndrkha.dicoding.storyapp.R
 import com.google.android.material.button.MaterialButton
+import com.rjndrkha.dicoding.storyapp.R
 
 class CustomButton : MaterialButton {
 

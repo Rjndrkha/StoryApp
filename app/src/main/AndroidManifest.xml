@@ -3,11 +3,14 @@
     package="com.rjndrkha.dicoding.storyapp">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <uses-feature android:name="android.hardware.camera" />
 
-    <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
     <uses-permission
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="18" />
@@ -20,8 +23,13 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.StoryApp">
         <activity
-            android:name=".Camerax"
+            android:name=".ui.create_story.Camerax"
             android:exported="false" />
+
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyArA534clRnR6Qwg_Oamsdrbfl0VSREqQ8" />
+
         <activity
             android:name=".ui.create_story.CreateStoryActivity"
             android:exported="false" />
@@ -33,7 +41,7 @@
             android:name=".ui.register.RegisterActivity"
             android:exported="false" />
         <activity
-            android:name=".SplashScreenMain"
+            android:name=".ui.splash_screen.SplashScreenActivity"
             android:exported="true"
             android:theme="@style/SplashScreen">
             <intent-filter>
@@ -51,7 +59,7 @@
 
         <provider
             android:name="androidx.core.content.FileProvider"
-            android:authorities="com.rjndrkha.dicoding.storyapp.mycamera"
+            android:authorities="com.dicoding.storyapp.mycamera"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data

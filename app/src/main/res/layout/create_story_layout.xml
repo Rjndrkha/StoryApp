@@ -6,7 +6,8 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="match_parent"
+        android:paddingBottom="20dp">
 
         <ImageView
             android:id="@+id/imagePickerView"
@@ -69,6 +70,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="20dp"
+
             android:background="@drawable/rounded_shape"
             android:text="@string/submit"
             app:layout_constraintStart_toEndOf="parent"

@@ -167,6 +167,7 @@
         android:background="@drawable/border"
         android:textColor="@color/colorPrimaryVariant"
         android:padding="15dp"
+        android:visibility="gone"
         android:textStyle="bold"
         android:text="@string/back"
         android:textAllCaps="true"

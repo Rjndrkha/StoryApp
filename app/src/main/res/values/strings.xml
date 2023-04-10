@@ -13,10 +13,9 @@
     <string name="back">Back</string>
     <string name="title_activity_main">MainActivity</string>
     <string name="title_profile">Profile</string>
-    <string name="title_notifications">Notifications</string>
     <string name="error_message">Something wrong with our server.\nPlease try again later.</string>
     <string name="image_error">image_error</string>
-    <string name="ok">Ok</string>
+    <string name="ok">OK</string>
     <string name="success_create_user">Success register your account</string>
     <string name="user_image">User Image</string>
     <string name="setting">Setting</string>
@@ -35,11 +34,13 @@
     <string name="success_create_story">Your story is created!</string>
     <string name="error_validation">Please make sure all the input field is correct!</string>
     <string name="dark_mode">Dark Mode</string>
-    <string name="light_mode">Light Mode</string>
     <string name="detail_story">Detail Story</string>
     <string name="created_by">Created By</string>
     <string name="description">Description</string>
     <string name="invalid_email">Invalid email</string>
     <string name="invalid_name">Invalid Name</string>
     <string name="invalid_password">Password Min 8</string>
+    <string name="title_maps">Map</string>
+    <string name="location_not_found">Location is not found. Try Again</string>
+    <string name="retry">Retry</string>
 </resources>

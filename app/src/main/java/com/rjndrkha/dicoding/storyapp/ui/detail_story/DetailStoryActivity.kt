@@ -1,8 +1,8 @@
 package com.rjndrkha.dicoding.storyapp.ui.detail_story
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.MenuItem
+import androidx.appcompat.app.AppCompatActivity
 import com.bumptech.glide.Glide
 import com.rjndrkha.dicoding.storyapp.R
 import com.rjndrkha.dicoding.storyapp.custom_view.Constants
@@ -41,9 +41,9 @@ class DetailStoryActivity : AppCompatActivity() {
             .into(binding.storyImageView)
 
         detailStory.apply {
-            binding.nameTextView.setText(name)
-            binding.descriptionTextView.setText(description)
-            binding.dateTextView.setText(createdAt.withDateFormat())
+            binding.nameTextView.text = name
+            binding.descriptionTextView.text = description
+            binding.dateTextView.text = createdAt.withDateFormat()
         }
     }
 }

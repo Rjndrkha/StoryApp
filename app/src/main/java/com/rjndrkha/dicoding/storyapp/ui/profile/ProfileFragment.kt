@@ -5,10 +5,10 @@ import android.animation.ObjectAnimator
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.provider.Settings
 import android.widget.CompoundButton
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.datastore.core.DataStore
@@ -18,11 +18,11 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.rjndrkha.dicoding.storyapp.databinding.FragmentProfileBinding
 import com.rjndrkha.dicoding.storyapp.model.LoginModel
+import com.rjndrkha.dicoding.storyapp.model.view_model.SettingViewModel
+import com.rjndrkha.dicoding.storyapp.model.view_model.SettingViewModelFactory
 import com.rjndrkha.dicoding.storyapp.preference.LoginPreference
 import com.rjndrkha.dicoding.storyapp.preference.SettingPreferences
 import com.rjndrkha.dicoding.storyapp.ui.login.LoginActivity
-import com.rjndrkha.dicoding.storyapp.model.view_model.SettingViewModel
-import com.rjndrkha.dicoding.storyapp.model.view_model.SettingViewModelFactory
 
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 class ProfileFragment : Fragment() {

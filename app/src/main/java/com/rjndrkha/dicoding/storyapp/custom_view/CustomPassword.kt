@@ -4,9 +4,9 @@ import android.content.Context
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.AttributeSet
+import com.google.android.material.textfield.TextInputEditText
 import com.rjndrkha.dicoding.storyapp.R
 import com.rjndrkha.dicoding.storyapp.utils.validateMinLength
-import com.google.android.material.textfield.TextInputEditText
 
 class CustomPassword : TextInputEditText {
     constructor(context: Context) : super(context) {

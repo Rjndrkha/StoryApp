@@ -17,45 +17,45 @@
         android:paddingBottom="10dp">
 
         <ImageView
+            android:contentDescription="@string/user_image"
             android:id="@+id/storyImageView"
             android:layout_width="match_parent"
             android:layout_height="250dp"
-            android:adjustViewBounds="true"
-            android:contentDescription="@string/user_image"
-            android:scaleType="fitXY"
             card_view:layout_constraintStart_toStartOf="parent"
             card_view:layout_constraintTop_toTopOf="parent"
-            tools:src="@tools:sample/backgrounds/scenic" />
+            tools:src="@tools:sample/backgrounds/scenic"
+            android:adjustViewBounds="true"
+            android:scaleType="fitXY"/>
 
         <TextView
             android:id="@+id/nameTextView"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_margin="10dp"
-            android:textSize="15sp"
-            android:textStyle="bold"
             card_view:layout_constraintStart_toStartOf="parent"
-            card_view:layout_constraintTop_toBottomOf="@+id/storyImageView" />
+            card_view:layout_constraintTop_toBottomOf="@+id/storyImageView"
+            android:textStyle="bold"
+            android:textSize="20sp"
+            android:layout_margin="10dp"/>
 
         <TextView
             android:id="@+id/dateTextView"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_margin="10dp"
-            android:textSize="15sp"
-            android:textStyle="normal"
             card_view:layout_constraintEnd_toEndOf="parent"
-            card_view:layout_constraintTop_toBottomOf="@+id/storyImageView" />
+            card_view:layout_constraintTop_toBottomOf="@+id/storyImageView"
+            android:textStyle="normal"
+            android:textSize="15sp"
+            android:layout_margin="10dp" />
 
         <TextView
             android:id="@+id/descriptionTextView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="10dp"
-            android:textSize="15sp"
-            android:textStyle="normal"
             card_view:layout_constraintStart_toStartOf="parent"
-            card_view:layout_constraintTop_toBottomOf="@+id/nameTextView" />
+            card_view:layout_constraintTop_toBottomOf="@+id/nameTextView"
+            android:textStyle="normal"
+            android:textSize="15sp"
+            android:layout_marginHorizontal="10dp" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.cardview.widget.CardView>
