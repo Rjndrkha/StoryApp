@@ -28,7 +28,7 @@
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyArA534clRnR6Qwg_Oamsdrbfl0VSREqQ8" />
+            android:value="XXXX" />
 
         <activity
             android:name=".ui.create_story.CreateStoryActivity"
